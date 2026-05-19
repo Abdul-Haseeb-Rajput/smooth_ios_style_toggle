@@ -1,7 +1,6 @@
 ## 0.1.1
 
 * Default `trackWidth` is **110** (was 74 in early drafts).
-* Added `CONTRIBUTING.md` and `SECURITY.md`.
 
 ## 0.1.0
 
