@@ -1,0 +1,4 @@
+# Copy to local.properties and adjust paths for your machine.
+# Use the project's FVM SDK (recommended) — run `fvm use` from the repo root first.
+sdk.dir=C:\\path\\to\\Android\\sdk
+flutter.sdk=C:\\path\\to\\smooth_ios_style_toggle\\.fvm\\flutter_sdk

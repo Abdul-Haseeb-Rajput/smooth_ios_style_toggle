@@ -1,0 +1,9 @@
+# Keep the published archive small — screenshots live under doc/ and are included.
+build/
+example/build/
+example/.dart_tool/
+.dart_tool/
+.idea/
+.vscode/
+*.iml
+test/doc/
