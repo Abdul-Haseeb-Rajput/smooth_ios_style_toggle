@@ -12,9 +12,9 @@ A smooth, fully customizable **iOS-style toggle** for Flutter.
 
 ## Screenshots
 
-| Track labels (Online / Offline)                         | Default style                                         | Text inside thumb |
-| ------------------------------------------------------- | ----------------------------------------------------- | ----------------- |
-| ![Default off](doc/screenshots/toggle_default_off.jpeg) | ![Default on](doc/screenshots/toggle_default_on.jpeg) |
+| Track labels (On)                         | Track labels (Off)                                        | 
+| ------------------------------------------------------- | ----------------------------------------------------- |
+| ![Default off](doc/screenshots/toggle_default_off.jpeg) | ![Default on](doc/screenshots/toggle_default_on.jpeg) 
 
 > Images are bundled in this package under `doc/screenshots/` and display on pub.dev automatically.
 
