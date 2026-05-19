@@ -170,8 +170,7 @@ Thumb dimensions are derived automatically: **thumb height = trackHeight − 2×
 ## Example project
 
 ```bash
-git clone https://github.com/Abdul-Haseeb-Rajput/smooth_ios_style_toggle.git
-cd smooth_ios_style_toggle/example
+cd example
 flutter run
 ```
 
@@ -195,12 +194,6 @@ cd example && fvm flutter run
 ```
 
 If you see a build error about `elevation` in `semantics.dart`, see [TOOLING.md](TOOLING.md) (mixed Flutter SDK paths).
-
-## Contributing
-
-Issues and pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
-
-Maintainers: after publishing, protect `main` using [GITHUB_BRANCH_PROTECTION.md](GITHUB_BRANCH_PROTECTION.md).
 
 ## License
 
