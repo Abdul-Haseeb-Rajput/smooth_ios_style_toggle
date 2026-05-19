@@ -174,12 +174,6 @@ cd example
 flutter run
 ```
 
-## Regenerate README screenshots
-
-```bash
-flutter test --update-goldens test/screenshot_golden_test.dart
-```
-
 ## Requirements
 
 - Dart SDK `>=3.0.0 <4.0.0`

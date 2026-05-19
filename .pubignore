@@ -1,8 +1,13 @@
-# Keep the published archive small — screenshots live under doc/ and are included.
+# Keep the published archive small; never upload machine-specific or VCS files.
 build/
 example/build/
 example/.dart_tool/
+example/android/local.properties
+example/android/app/.cxx/
+example/android/.gradle/
 .dart_tool/
+.git/
+.fvm/
 .idea/
 .vscode/
 *.iml
