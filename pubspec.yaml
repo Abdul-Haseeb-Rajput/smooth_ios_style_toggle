@@ -1,8 +1,9 @@
 name: smooth_ios_style_toggle
 description: >-
-  A smooth, fully customizable iOS-style toggle with a pill thumb (width = 2× height),
-  inline labels beside the thumb, drag gestures, and built-in Flutter state management.
-version: 0.1.1
+  A smooth, fully customizable iOS-style toggle with a pill thumb (~1.7× height),
+  adaptive labels beside or inside the thumb, drag gestures, validated sizing, and
+  built-in Flutter state management (ValueNotifier / InheritedWidget).
+version: 0.2.0
 # Repository URL is used as the package homepage on pub.dev.
 homepage: https://github.com/Abdul-Haseeb-Rajput/smooth_ios_style_toggle
 repository: https://github.com/Abdul-Haseeb-Rajput/smooth_ios_style_toggle
