@@ -234,6 +234,10 @@ cd example && fvm flutter run
 
 If you see a build error about `elevation` in `semantics.dart`, see [TOOLING.md](TOOLING.md) (mixed Flutter SDK paths).
 
+## Contributing
+
+Pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Changes to `main` require a PR, passing CI, and approval from the code owner.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

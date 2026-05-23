@@ -32,14 +32,16 @@ dart pub publish --dry-run
 
 ## 4. Push to GitHub
 
+**`main` is protected** (PR + owner approval + CI). See [`.github/RULES.md`](.github/RULES.md). To land a release, merge a PR or use an admin bypass after importing [`.github/rulesets/main.json`](.github/rulesets/main.json).
+
 ```bash
 git status
-git add CHANGELOG.md README.md pubspec.yaml lib/ test/ example/lib/main.dart example/README.md doc/screenshots/ PUBLISHING.md
+git add .
 git commit -m "Release v0.2.0: adaptive text, validated sizing, bug fixes"
 git push origin main
 ```
 
-Adjust branch/remote if yours differs (`origin/chore/cleanup-docs` → merge to `main` first if needed).
+**PR fallback:** `git push -u origin HEAD:release/v0.2.0` → merge on GitHub.
 
 ## 5. Publish to pub.dev
 
