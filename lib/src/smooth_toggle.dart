@@ -6,7 +6,7 @@ import 'smooth_toggle_controller.dart';
 import 'smooth_toggle_style.dart';
 import 'smooth_toggle_theme.dart';
 
-/// A smooth, fully customizable iOS-style toggle with a pill thumb (width = 2× height)
+/// A smooth, fully customizable iOS-style toggle with a pill thumb (~1.7× height)
 /// and optional labels rendered beside the thumb inside the track.
 class SmoothIOSToggle extends StatefulWidget {
   const SmoothIOSToggle({
@@ -69,6 +69,8 @@ class _SmoothIOSToggleState extends State<SmoothIOSToggle>
   SmoothToggleController? _internalController;
   bool _isDragging = false;
   bool _didInitAnimation = false;
+  bool _suppressTap = false;
+  double _dragDistance = 0;
 
   bool get _canInteract =>
       widget.enabled &&
@@ -85,7 +87,7 @@ class _SmoothIOSToggleState extends State<SmoothIOSToggle>
     _bindController();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 200),
       value: _currentValue ? 1.0 : 0.0,
     );
     _positionAnimation = _animationController;
@@ -131,9 +133,8 @@ class _SmoothIOSToggleState extends State<SmoothIOSToggle>
       _internalController = null;
     }
 
-    final target = _currentValue;
-    if (!_isDragging && _animationController.value != (target ? 1.0 : 0.0)) {
-      _animateTo(target);
+    if (!_isDragging && _currentValue != _valueAt(oldWidget)) {
+      _animateTo(_currentValue);
     }
 
     final style = _resolvedStyle(context);
@@ -150,12 +151,19 @@ class _SmoothIOSToggleState extends State<SmoothIOSToggle>
     super.dispose();
   }
 
+  bool _valueAt(SmoothIOSToggle w) => w.controller?.value ?? w.value;
+
   void _onControllerChanged() {
     if (!_isDragging) {
       _animateTo(widget.controller!.value);
     }
     setState(() {});
   }
+
+  bool get _parentOwnsState =>
+      widget.onChanged != null &&
+      widget.controller == null &&
+      _internalController == null;
 
   SmoothToggleStyle _resolvedStyle(BuildContext context) {
     final theme = Theme.of(context);
@@ -199,11 +207,40 @@ class _SmoothIOSToggleState extends State<SmoothIOSToggle>
     widget.onToggle?.call();
   }
 
+  void _syncAnimationToCurrentValue() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_isDragging) {
+        _animateTo(_currentValue);
+      }
+    });
+  }
+
   void _handleTap() {
     if (!_canInteract) return;
     final next = !_currentValue;
+    if (next == _currentValue) return;
     _setValue(next);
-    _animateTo(next);
+    if (_parentOwnsState) {
+      _syncAnimationToCurrentValue();
+    } else {
+      _animateTo(next);
+    }
+    if (widget.hapticFeedback) {
+      _triggerHaptic();
+    }
+  }
+
+  void _commitDragEnd() {
+    setState(() => _isDragging = false);
+    final targetOn = _animationController.value >= 0.5;
+    if (targetOn != _currentValue) {
+      _setValue(targetOn);
+    }
+    if (_parentOwnsState) {
+      _syncAnimationToCurrentValue();
+    } else {
+      _animateTo(_currentValue);
+    }
     if (widget.hapticFeedback) {
       _triggerHaptic();
     }
@@ -245,14 +282,22 @@ class _SmoothIOSToggleState extends State<SmoothIOSToggle>
         },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: _handleTap,
+          onTap: () {
+            if (_suppressTap) {
+              _suppressTap = false;
+              return;
+            }
+            _handleTap();
+          },
           onHorizontalDragStart: _canInteract
               ? (_) {
+                  _dragDistance = 0;
                   setState(() => _isDragging = true);
                 }
               : null,
           onHorizontalDragUpdate: _canInteract
               ? (details) {
+                  _dragDistance += details.delta.dx.abs();
                   final box = context.findRenderObject() as RenderBox?;
                   if (box == null) return;
                   final width = box.size.width;
@@ -267,14 +312,15 @@ class _SmoothIOSToggleState extends State<SmoothIOSToggle>
                 }
               : null,
           onHorizontalDragEnd: _canInteract
-              ? (details) {
+              ? (_) {
+                  _suppressTap = _dragDistance > 4;
+                  _commitDragEnd();
+                }
+              : null,
+          onHorizontalDragCancel: _canInteract
+              ? () {
                   setState(() => _isDragging = false);
-                  final on = _animationController.value >= 0.5;
-                  _setValue(on);
-                  _animateTo(on);
-                  if (widget.hapticFeedback) {
-                    _triggerHaptic();
-                  }
+                  _animateTo(_currentValue);
                 }
               : null,
           child: AnimatedBuilder(
@@ -334,26 +380,19 @@ class _SmoothToggleRender extends StatelessWidget {
     final thumbLeft = padding + (travel * progress);
 
     final opacity = enabled ? 1.0 : 0.45;
+    final labelGap = style.trackLabelGap();
+    final trackLabelMaxWidth = style.maxTrackLabelWidth();
+    final thumbInset = style.thumbTextHorizontalInset();
+    final thumbLabelMaxWidth =
+        (thumbWidth - (thumbInset * 2)).clamp(0.0, thumbWidth).toDouble();
 
-    final defaultTextStyle = theme.textTheme.labelSmall?.copyWith(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.2,
-        ) ??
-        const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.2,
-        );
-
-    final activeTextStyle = (style.activeTextStyle ?? defaultTextStyle)
-        .copyWith(color: style.activeTextColor ?? Colors.white);
-    final inactiveTextStyle =
-        (style.inactiveTextStyle ?? defaultTextStyle).copyWith(
-      color: style.inactiveTextColor ??
-          (theme.brightness == Brightness.dark
-              ? Colors.white70
-              : Colors.black54),
+    final activeTextStyle = style.resolveActiveTextStyle(
+      theme,
+      insideThumb: textInsideThumb,
+    );
+    final inactiveTextStyle = style.resolveInactiveTextStyle(
+      theme,
+      insideThumb: textInsideThumb,
     );
 
     final displayActive = showText && progress > 0.35;
@@ -380,39 +419,37 @@ class _SmoothToggleRender extends StatelessWidget {
             // Track labels (beside thumb)
             if (showText && !textInsideThumb) ...[
               Positioned(
-                left: padding + thumbWidth + 4,
-                right: padding + 4,
+                left: padding + thumbWidth + labelGap,
+                right: padding,
                 top: 0,
                 bottom: 0,
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Opacity(
                     opacity: (1 - progress).clamp(0.0, 1.0),
-                    child: Text(
-                      inactiveText,
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
+                    child: _ScaledToggleLabel(
+                      text: inactiveText,
                       style: inactiveTextStyle,
+                      maxWidth: trackLabelMaxWidth,
+                      maxHeight: trackHeight,
                     ),
                   ),
                 ),
               ),
               Positioned(
-                left: padding + 4,
-                right: padding + thumbWidth + 4,
+                left: padding,
+                right: padding + thumbWidth + labelGap,
                 top: 0,
                 bottom: 0,
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Opacity(
                     opacity: progress.clamp(0.0, 1.0),
-                    child: Text(
-                      activeText,
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
+                    child: _ScaledToggleLabel(
+                      text: activeText,
                       style: activeTextStyle,
+                      maxWidth: trackLabelMaxWidth,
+                      maxHeight: trackHeight,
                     ),
                   ),
                 ),
@@ -442,17 +479,20 @@ class _SmoothToggleRender extends StatelessWidget {
                       ],
                 ),
                 child: showText && textInsideThumb
-                    ? Center(
-                        child: AnimatedOpacity(
-                          duration: const Duration(milliseconds: 120),
-                          opacity: displayActive || displayInactive ? 1 : 0,
-                          child: Text(
-                            progress >= 0.5 ? activeText : inactiveText,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: progress >= 0.5
-                                ? activeTextStyle
-                                : inactiveTextStyle,
+                    ? Padding(
+                        padding: EdgeInsets.symmetric(horizontal: thumbInset),
+                        child: Center(
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 120),
+                            opacity: displayActive || displayInactive ? 1 : 0,
+                            child: _ScaledToggleLabel(
+                              text: progress >= 0.5 ? activeText : inactiveText,
+                              style: progress >= 0.5
+                                  ? activeTextStyle
+                                  : inactiveTextStyle,
+                              maxWidth: thumbLabelMaxWidth,
+                              maxHeight: thumbHeight,
+                            ),
                           ),
                         ),
                       )
@@ -460,6 +500,42 @@ class _SmoothToggleRender extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Single-line label that scales down to fit [maxWidth] × [maxHeight].
+class _ScaledToggleLabel extends StatelessWidget {
+  const _ScaledToggleLabel({
+    required this.text,
+    required this.style,
+    required this.maxWidth,
+    required this.maxHeight,
+  });
+
+  final String text;
+  final TextStyle style;
+  final double maxWidth;
+  final double maxHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    if (maxWidth <= 0 || maxHeight <= 0) {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(
+      width: maxWidth,
+      height: maxHeight,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          maxLines: 1,
+          softWrap: false,
+          style: style,
         ),
       ),
     );
