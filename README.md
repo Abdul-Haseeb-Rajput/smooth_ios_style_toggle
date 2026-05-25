@@ -2,6 +2,7 @@
 
 [![pub package](https://img.shields.io/pub/v/smooth_ios_style_toggle.svg)](https://pub.dev/packages/smooth_ios_style_toggle)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![codecov](https://codecov.io/gh/Abdul-Haseeb-Rajput/smooth_ios_style_toggle/branch/main/graph/badge.svg)](https://codecov.io/gh/Abdul-Haseeb-Rajput/smooth_ios_style_toggle)
 
 A smooth, fully customizable **iOS-style toggle** for Flutter.
 

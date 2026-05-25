@@ -10,9 +10,14 @@ Thanks for helping improve **smooth_ios_style_toggle**!
    dart analyze lib test
    flutter test
    ```
-3. Open a **pull request** into `main`.
-4. Wait for **CI** (`analyze-and-test`) to pass.
-5. A **code owner** ([@Abdul-Haseeb-Rajput](https://github.com/Abdul-Haseeb-Rajput)) must **approve** before the PR can merge.
+3. If you changed the widget's appearance, update golden test baselines:
+   ```bash
+   flutter test --update-goldens
+   ```
+4. Commit the updated golden files in `test/goldens/`.
+5. Open a **pull request** into `main`.
+6. Wait for **CI** (`analyze-and-test`) to pass (tests + coverage + golden verification).
+7. A **code owner** ([@Abdul-Haseeb-Rajput](https://github.com/Abdul-Haseeb-Rajput)) must **approve** before the PR can merge.
 
 Direct pushes to `main` are blocked by [repository rules](.github/RULES.md).
 
@@ -27,6 +32,30 @@ Direct pushes to `main` are blocked by [repository rules](.github/RULES.md).
 | No delete `main` | Default branch cannot be removed |
 
 Repository administrators can bypass rules for emergencies only.
+
+## Testing
+
+Tests are **required** for all behavior changes. Use the following commands:
+
+```bash
+# Run all tests (unit, widget, and golden)
+flutter test
+
+# Update golden test baselines (visual regression)
+# Use only after intentional appearance changes
+flutter test --update-goldens
+
+# Run with coverage report
+flutter test --coverage
+```
+
+**Test coverage guidelines:**
+- Target **80%+ coverage** on all new code
+- Write **unit tests** for pure functions (validators, calculators)
+- Write **widget tests** for state changes, gestures, theme resolution
+- Add **golden tests** when visual changes affect widget appearance
+
+See [test/goldens/README.md](test/goldens/README.md) for golden test details.
 
 ## Scope
 
